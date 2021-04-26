@@ -18,7 +18,10 @@ WORKDIR /root
 
 # Installs pandas, google-cloud-storage, and scikit-learn
 # scikit-learn is used when loading the data
-RUN pip install pandas google-cloud-storage scikit-learn
+RUN pip3 install pandas google-cloud-storage scikit-learn papermill scipy ipykernel
+
+# adding kernel to jupyter
+RUN python3 -m ipykernel install --user
 
 # Install curl
 RUN apt-get update; apt-get install curl -y
@@ -31,6 +34,7 @@ RUN curl https://storage.googleapis.com/cloud-samples-data/ml-engine/sonar/sonar
 COPY model.py ./model.py
 COPY data_utils.py ./data_utils.py
 COPY task.py ./task.py
+COPY notebook-template.ipynb ./notebook-template.ipynb
 
 # Set up the entry point to invoke the trainer.
 ENTRYPOINT ["python", "task.py"]
