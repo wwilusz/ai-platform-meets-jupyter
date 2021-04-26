@@ -34,10 +34,9 @@ def load_data(args):
     return train_f, test_f, train_l, test_l
 
 
-def save_model(model_dir, model_name):
-    """Saves the model to Google Cloud Storage"""
-    bucket = storage.Client().bucket(model_dir)
-    blob = bucket.blob('{}/{}'.format(
-        datetime.datetime.now().strftime('sonar_%Y%m%d_%H%M%S'),
-        model_name))
-    blob.upload_from_filename(model_name)
+def save_artifacts(artifacts_dir, run_id, artifact_name):
+    """Saves the artifacts to Google Cloud Storage"""
+    bucket = storage.Client().bucket(artifacts_dir)
+    blob_dest = '{}/{}'.format('{}'.format(run_id), artifact_name)
+    blob = bucket.blob(blob_dest)
+    blob.upload_from_filename(artifact_name)
