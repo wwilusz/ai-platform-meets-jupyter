@@ -12,10 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import argparse
+import papermill as pm
 
 import data_utils
 import model
+
+
+def run_notebook(notebook_fp, parameters={}, kernel_name='Python3'):
+    """Runs notebook from the provided filepath"""
+    out_notebook_fp = '{}-executed.{}'.format(os.path.split(notebook_fp)[0], os.path.split(notebook_fp)[1])
+    try:
+        pm.execute_notebook(
+            notebook_fp,
+            out_notebook_fp,
+            parameters,
+            kernel_name=kernel_name)
+    except Exception as e:
+        print("ERROR FOR: {}".format(out_notebook_fp))
+        print(e)
+        raise
 
 
 def train_model(args):
@@ -70,6 +87,7 @@ def get_args():
 
 def main():
     args = get_args()
+    run_notebook('./notebook-template.ipynb')
     train_model(args)
 
 
