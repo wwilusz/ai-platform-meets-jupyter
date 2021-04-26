@@ -14,15 +14,20 @@
 
 import os
 import argparse
+import datetime
 import papermill as pm
 
 import data_utils
 import model
 
 
-def run_notebook(notebook_fp, parameters={}, kernel_name='Python3'):
+RUN_ID = datetime.datetime.now().strftime('jupyai_%Y%m%d_%H%M%S')
+
+
+def run_notebook(notebook_fp, args,  parameters={}, kernel_name='Python3'):
     """Runs notebook from the provided filepath"""
-    out_notebook_fp = '{}-executed.{}'.format(os.path.split(notebook_fp)[0], os.path.split(notebook_fp)[1])
+    out_notebook_fp = notebook_fp.replace('-template.ipynb', '-executed.ipynb')
+    out_notebook_fn = os.path.split(out_notebook_fp)[1]
     try:
         pm.execute_notebook(
             notebook_fp,
@@ -33,6 +38,10 @@ def run_notebook(notebook_fp, parameters={}, kernel_name='Python3'):
         print("ERROR FOR: {}".format(out_notebook_fp))
         print(e)
         raise
+
+    if args.artifacts_dir:
+        # Save the artifacts to GCS
+        data_utils.save_artifacts(args.artifacts_dir, RUN_ID, out_notebook_fn)
 
 
 def train_model(args):
@@ -51,16 +60,16 @@ def train_model(args):
     # Export the trained model
     sonar_model.save(args.model_name)
 
-    if args.model_dir:
+    if args.artifacts_dir:
         # Save the model to GCS
-        data_utils.save_model(args.model_dir, args.model_name)
+        data_utils.save_artifacts(args.artifacts_dir, RUN_ID, args.model_name)
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Keras Sonar Example')
-    parser.add_argument('--model-dir',
+    parser.add_argument('--artifacts-dir',
                         type=str,
-                        help='Where to save the model')
+                        help='Where to save the model and other artifacts')
     parser.add_argument('--model-name',
                         type=str,
                         default='sonar_model.h5',
@@ -86,8 +95,9 @@ def get_args():
 
 
 def main():
+    print("RUN ID: {}".format(RUN_ID))
     args = get_args()
-    run_notebook('./notebook-template.ipynb')
+    run_notebook('./notebook-template.ipynb', args)
     train_model(args)
 
 
